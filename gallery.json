@@ -544,7 +544,6 @@
         "tags": ["미지의_서울"],
         "images": [
             "/galleryimg/250630post1.jpg",
-            "/galleryimg/250630post2.jpg",
             "/galleryimg/250630post3.jpg",
             "/galleryimg/250630post4.jpg"]
     },
@@ -735,7 +734,7 @@
         },
         "tags": ["번_더_위치"],
         "images": ["/galleryimg/250529post1.jpg",
-            "/galleryimg/250529post2.jpg"]
+            "/galleryimg/250529post2.png"]
     },
     {
         "id": "250527_insagram_post",
@@ -747,7 +746,7 @@
         },
         "tags": ["성원해주신_순간"],
         "images": ["/galleryimg/250527post1.jpg",
-                "/galleryimg/250527post1.jpg"]
+                "/galleryimg/250527post2.jpg"]
     },
     {
         "id": "250526_press",
