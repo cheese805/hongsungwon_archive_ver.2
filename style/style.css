@@ -23,33 +23,39 @@ body, html {
 }
 
 /* ===========================
-   FULLPAGE WRAPPER (메인도 프로필처럼)
+   FULLPAGE WRAPPER (JS로만 스냅)
    =========================== */
 #fullpage-wrapper {
   position: relative;
   width: 100%;
-  height: 100svh; 
-  overflow-y: auto; 
+  height: 100svh;          /* 모바일 주소창 변화 덜 타게 */
+  overflow-y: auto;        /* scroll → auto */
   scroll-behavior: smooth;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  scrollbar-width: none;   /* Firefox */
+  -ms-overflow-style: none;/* IE/old Edge */
 }
 #fullpage-wrapper::-webkit-scrollbar {
   width: 0 !important;
   height: 0 !important;
 }
 
+/* ===========================
+   각 섹션 공통
+   =========================== */
 .section {
   width: 100%;
-  height: 100svh;
+  height: 100svh;          /* 100vh → 100svh */
   position: relative;
   box-sizing: border-box;
+
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   text-align: center;
+
   padding: 0;
+  /* scroll-snap-align: start;  ← 삭제 */
 }
 
 /* =========================== */
