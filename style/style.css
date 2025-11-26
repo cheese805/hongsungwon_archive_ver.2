@@ -22,34 +22,34 @@ body, html {
     -webkit-text-size-adjust: 100%;
 }
 
-/* Scroll Snap Container */
+/* ===========================
+   FULLPAGE WRAPPER (메인도 프로필처럼)
+   =========================== */
 #fullpage-wrapper {
-    position: relative;
-    width: 100%;
-    height: 100vh;
-    overflow-y: scroll; 
-    scroll-snap-type: y proximity; 
-    scroll-behavior: smooth; 
-    scrollbar-width: none; 
-    -ms-overflow-style: none;  
+  position: relative;
+  width: 100%;
+  height: 100svh; 
+  overflow-y: auto; 
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
-
 #fullpage-wrapper::-webkit-scrollbar {
-    display: none;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 .section {
-    width: 100vw;
-    height: 100vh;
-    position: relative;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    scroll-snap-align: start; 
-    padding: 0; 
+  width: 100%;
+  height: 100svh;
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 0;
 }
 
 /* =========================== */
