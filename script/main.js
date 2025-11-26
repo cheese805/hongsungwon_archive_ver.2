@@ -1,117 +1,155 @@
-// profilescript.js
+// index.html 전용 풀페이지 스크롤
 document.addEventListener('DOMContentLoaded', () => {
-  const wrapper   = document.getElementById('fullpage-wrapper');
-  const sections  = [...document.querySelectorAll('.section')];
-  const triggers  = document.querySelectorAll('[data-next-section]');
+  const wrapper  = document.getElementById('fullpage-wrapper');
+  const sections = Array.from(document.querySelectorAll('.section'));
 
-  // 내부 스크롤 가능한 요소(예: 필모그래피) – 없으면 자동 무시됨
-  // 필요 시 여러 개도 자연스럽게 동작하도록 제네릭 처리
-  const isScrollable = (el) => {
-    if (!el) return false;
-    const style = getComputedStyle(el);
-    const oy = style.overflowY;
-    return (oy === 'auto' || oy === 'scroll') && el.scrollHeight > el.clientHeight;
-  };
+  if (!wrapper || sections.length === 0) return;
 
-  // ===== 튜닝 포인트 =====
-  const WHEEL_THRESHOLD = 30;   // 트랙패드 대응 (낮을수록 민감)
-  const TOUCH_THRESHOLD = 60;   // 스와이프 민감도(px)
-  const SNAP_LOCK_MS    = 700;  // 섹션 스냅 후 잠금 시간(ms)
+  let currentIndex = 0;
+  let isSnapping   = false;
+  let touchStartY  = 0;
 
-  let isSnapping = false;
+  // ===== 감도 설정 (숫자 높을수록 둔감해짐) =====
+  const WHEEL_THRESHOLD = 80;   // 마우스 휠
+  const TOUCH_THRESHOLD = 70;   // 터치 스와이프
+  const SNAP_LOCK       = 700;  // ms, 한 번 스냅 후 잠금 시간
 
-  const vh = () => wrapper.clientHeight; // svh 보정
-  const indexByScroll = () => Math.round(wrapper.scrollTop / vh());
-
-  const snapTo = (idx) => {
-    idx = Math.max(0, Math.min(idx, sections.length - 1));
+  const snapTo = (index) => {
+    if (index < 0 || index >= sections.length) return;
     isSnapping = true;
-    wrapper.scrollTo({ top: idx * vh(), behavior: 'smooth' });
-    setTimeout(() => { isSnapping = false; }, SNAP_LOCK_MS);
-  };
+    currentIndex = index;
 
-  // 이벤트 타깃에서 wrapper까지 타고 올라가며
-  // 내부 스크롤을 더 할 수 있으면 true
-  const canScrollInside = (startEl, deltaY) => {
-    let el = startEl;
-    while (el && el !== wrapper && el !== document.body) {
-      if (isScrollable(el)) {
-        const atTop    = el.scrollTop <= 0;
-        const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 1;
-        if (deltaY > 0 && !atBottom) return true; // 아래로 더 가능
-        if (deltaY < 0 && !atTop)    return true; // 위로 더 가능
-        return false; // 경계 도달 → 섹션 스냅 가능
-      }
-      el = el.parentElement;
-    }
-    return false;
-  };
-
-  // ===== 화살표(버튼) – 위/아래 둘 다 지원 =====
-  triggers.forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      if (isSnapping) return;
-      const idx = indexByScroll();
-      if (btn.id === 'scroll-to-filmography') snapTo(idx + 1);
-      else if (btn.id === 'scroll-to-profile') snapTo(idx - 1);
-      else snapTo(idx + 1); // 아이디 없으면 기본적으로 아래로
+    const targetTop = sections[index].offsetTop;
+    wrapper.scrollTo({
+      top: targetTop,
+      behavior: 'smooth',
     });
+
+    // 일정 시간 동안은 추가 입력 막기
+    setTimeout(() => {
+      isSnapping = false;
+    }, SNAP_LOCK);
+  };
+
+  // 현재 스크롤 위치 기준으로 "가장 가까운 섹션" 계산
+  const updateIndexByScroll = () => {
+    if (isSnapping) return;
+
+    const scrollTop = wrapper.scrollTop;
+    let closest = 0;
+    let minDiff = Infinity;
+
+    sections.forEach((sec, i) => {
+      const diff = Math.abs(sec.offsetTop - scrollTop);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closest = i;
+      }
+    });
+
+    currentIndex = closest;
+  };
+
+  // 스크롤이 멈췄을 때, 섹션 사이에 걸쳐 있으면 가까운 쪽으로 스냅
+  wrapper.addEventListener('scroll', () => {
+    if (isSnapping) return;
+
+    clearTimeout(wrapper._snapTimeout);
+    wrapper._snapTimeout = setTimeout(() => {
+      const scrollTop = wrapper.scrollTop;
+      let closest = 0;
+      let minDiff = Infinity;
+
+      sections.forEach((sec, i) => {
+        const diff = Math.abs(sec.offsetTop - scrollTop);
+        if (diff < minDiff) {
+          minDiff = diff;
+          closest = i;
+        }
+      });
+
+      // 화면 높이의 40% 이내면 "가까운 섹션"으로 정렬
+      if (minDiff < window.innerHeight * 0.4) {
+        snapTo(closest);
+      } else {
+        // 그래도 좀 떨어져 있으면 인덱스만 업데이트
+        currentIndex = closest;
+      }
+    }, 120); // 스크롤 멈춘 뒤 살짝 텀 두고 동작
   });
 
-  // ===== 휠/트랙패드 =====
-  window.addEventListener('wheel', (e) => {
-    if (isSnapping) { e.preventDefault(); return; }
-    if (Math.abs(e.deltaY) < WHEEL_THRESHOLD) return;
-
-    // 내부 스크롤 여지가 있으면 섹션 스냅 금지
-    if (canScrollInside(e.target, e.deltaY)) return;
-
-    const idx = indexByScroll();
-    if (e.deltaY > 0 && idx < sections.length - 1) {
+  // 마우스 휠로 한 칸씩만 이동 (감도 낮게)
+  wrapper.addEventListener('wheel', (e) => {
+    if (isSnapping) {
       e.preventDefault();
-      snapTo(idx + 1);
-    } else if (e.deltaY < 0 && idx > 0) {
-      e.preventDefault();
-      snapTo(idx - 1);
+      return;
+    }
+
+    if (Math.abs(e.deltaY) < WHEEL_THRESHOLD) {
+      // 가벼운 미끄러짐은 무시
+      return;
+    }
+
+    e.preventDefault();
+    updateIndexByScroll();
+
+    if (e.deltaY > 0 && currentIndex < sections.length - 1) {
+      snapTo(currentIndex + 1);
+    } else if (e.deltaY < 0 && currentIndex > 0) {
+      snapTo(currentIndex - 1);
     }
   }, { passive: false });
 
-  // ===== 터치 스와이프 =====
-  let touchStartY = 0, touchStartTarget = null;
-  window.addEventListener('touchstart', (e) => {
+  // 터치 시작 위치 기록
+  wrapper.addEventListener('touchstart', (e) => {
+    if (e.touches.length !== 1) return;
     touchStartY = e.touches[0].clientY;
-    touchStartTarget = e.target;
   }, { passive: true });
 
-  window.addEventListener('touchend', (e) => {
+  // 터치 끝났을 때 방향/거리 보고 섹션 이동
+  wrapper.addEventListener('touchend', (e) => {
     if (isSnapping) return;
-    const deltaY = touchStartY - e.changedTouches[0].clientY;
-    if (Math.abs(deltaY) < TOUCH_THRESHOLD) return;
 
-    // 내부 스크롤 여지가 있으면 섹션 스냅 금지
-    if (canScrollInside(touchStartTarget, deltaY)) return;
+    const touchEndY = (e.changedTouches && e.changedTouches[0].clientY) || touchStartY;
+    const diff = touchStartY - touchEndY; // 양수: 위로 쓸어올림(다음 섹션)
 
-    const idx = indexByScroll();
-    if (deltaY > 0 && idx < sections.length - 1) snapTo(idx + 1);
-    else if (deltaY < 0 && idx > 0)             snapTo(idx - 1);
+    updateIndexByScroll();
+
+    // 손가락 살짝만 움직였으면, 그냥 가까운 섹션으로 재정렬
+    if (Math.abs(diff) < TOUCH_THRESHOLD) {
+      snapTo(currentIndex);
+      return;
+    }
+
+    if (diff > 0 && currentIndex < sections.length - 1) {
+      // 위로 쓸어올림 → 아래 섹션
+      snapTo(currentIndex + 1);
+    } else if (diff < 0 && currentIndex > 0) {
+      // 아래로 쓸어내림 → 위 섹션
+      snapTo(currentIndex - 1);
+    }
   }, { passive: true });
 
-  // ===== 리사이즈 시 현재 섹션으로 다시 스냅(주소창/툴바 변화 대응) =====
-  window.addEventListener('resize', () => {
-    const idx = indexByScroll();
-    snapTo(idx);
+  // data-next-section 버튼(있으면)도 한 칸씩 이동하게
+  document.querySelectorAll('[data-next-section]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (isSnapping) return;
+
+      updateIndexByScroll();
+
+      const target = btn.dataset.nextSection;
+      if (!target || target === 'next') {
+        if (currentIndex < sections.length - 1) {
+          snapTo(currentIndex + 1);
+        }
+      } else {
+        const idx = sections.findIndex(sec => sec.id === target);
+        if (idx !== -1) snapTo(idx);
+      }
+    });
   });
 
-  // ===== 키보드(선택): ↑/↓로 섹션 이동 =====
-  window.addEventListener('keydown', (e) => {
-    if (isSnapping) return;
-    const idx = indexByScroll();
-    if (e.key === 'ArrowDown' && idx < sections.length - 1) snapTo(idx + 1);
-    if (e.key === 'ArrowUp'   && idx > 0)                   snapTo(idx - 1);
-  });
-
-  // 초기 위치 고정
+  // 처음 로딩 시 0번 섹션에 딱 붙이기
   snapTo(0);
 });
-
