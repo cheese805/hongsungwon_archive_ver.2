@@ -1,155 +1,120 @@
-// index.html 전용 풀페이지 스크롤
+// index.html 전용 : 프레젠테이션처럼 한 섹션씩 부드럽게 넘기기
 document.addEventListener('DOMContentLoaded', () => {
   const wrapper  = document.getElementById('fullpage-wrapper');
-  const sections = Array.from(document.querySelectorAll('.section'));
+  const sections = [...document.querySelectorAll('.section')];
+  const triggers = document.querySelectorAll('[data-next-section]');
 
   if (!wrapper || sections.length === 0) return;
 
+  // ===== 상태/튜닝 =====
   let currentIndex = 0;
-  let isSnapping   = false;
+  let isAnimating  = false;
   let touchStartY  = 0;
 
-  // ===== 감도 설정 (숫자 높을수록 둔감해짐) =====
-  const WHEEL_THRESHOLD = 80;   // 마우스 휠
-  const TOUCH_THRESHOLD = 90;   // 터치 스와이프
-  const SNAP_LOCK       = 700;  // ms, 한 번 스냅 후 잠금 시간
+  const WHEEL_THRESHOLD = 40;   // 마우스 휠 감도 (높을수록 둔감)
+  const SWIPE_THRESHOLD = 50;   // 터치 스와이프 감도 (px)
+  const ANIMATION_MS    = 600;  // 한 섹션 넘어가는 시간 (대충 0.6초)
 
-  const snapTo = (index) => {
-    if (index < 0 || index >= sections.length) return;
-    isSnapping = true;
-    currentIndex = index;
+  const clampIndex = (i) => Math.max(0, Math.min(sections.length - 1, i));
 
-    const targetTop = sections[index].offsetTop;
+  const goToSection = (index) => {
+    const targetIndex = clampIndex(index);
+    const targetTop   = sections[targetIndex].offsetTop;
+
+    isAnimating = true;
+
     wrapper.scrollTo({
       top: targetTop,
       behavior: 'smooth',
     });
 
-    // 일정 시간 동안은 추가 입력 막기
+    // 애니메이션이 끝났다고 가정하는 시간
     setTimeout(() => {
-      isSnapping = false;
-    }, SNAP_LOCK);
+      currentIndex = targetIndex;
+      isAnimating  = false;
+    }, ANIMATION_MS);
   };
 
-  // 현재 스크롤 위치 기준으로 "가장 가까운 섹션" 계산
-  const updateIndexByScroll = () => {
-    if (isSnapping) return;
-
-    const scrollTop = wrapper.scrollTop;
-    let closest = 0;
-    let minDiff = Infinity;
-
-    sections.forEach((sec, i) => {
-      const diff = Math.abs(sec.offsetTop - scrollTop);
-      if (diff < minDiff) {
-        minDiff = diff;
-        closest = i;
-      }
-    });
-
-    currentIndex = closest;
-  };
-
-  // 스크롤이 멈췄을 때, 섹션 사이에 걸쳐 있으면 가까운 쪽으로 스냅
-  wrapper.addEventListener('scroll', () => {
-    if (isSnapping) return;
-
-    clearTimeout(wrapper._snapTimeout);
-    wrapper._snapTimeout = setTimeout(() => {
-      const scrollTop = wrapper.scrollTop;
-      let closest = 0;
-      let minDiff = Infinity;
-
-      sections.forEach((sec, i) => {
-        const diff = Math.abs(sec.offsetTop - scrollTop);
-        if (diff < minDiff) {
-          minDiff = diff;
-          closest = i;
-        }
-      });
-
-      // 화면 높이의 40% 이내면 "가까운 섹션"으로 정렬
-      if (minDiff < window.innerHeight * 0.4) {
-        snapTo(closest);
-      } else {
-        // 그래도 좀 떨어져 있으면 인덱스만 업데이트
-        currentIndex = closest;
-      }
-    }, 120); // 스크롤 멈춘 뒤 살짝 텀 두고 동작
-  });
-
-  // 마우스 휠로 한 칸씩만 이동 (감도 낮게)
+  // ===== 마우스 휠 : 딱 한 섹션씩 =====
   wrapper.addEventListener('wheel', (e) => {
-    if (isSnapping) {
-      e.preventDefault();
-      return;
-    }
+    e.preventDefault();          // 브라우저 기본 스크롤 막기 (탄성 차단)
 
-    if (Math.abs(e.deltaY) < WHEEL_THRESHOLD) {
-      // 가벼운 미끄러짐은 무시
-      return;
-    }
+    if (isAnimating) return;
 
-    e.preventDefault();
-    updateIndexByScroll();
-
-    if (e.deltaY > 0 && currentIndex < sections.length - 1) {
-      snapTo(currentIndex + 1);
-    } else if (e.deltaY < 0 && currentIndex > 0) {
-      snapTo(currentIndex - 1);
+    if (e.deltaY > WHEEL_THRESHOLD && currentIndex < sections.length - 1) {
+      goToSection(currentIndex + 1);
+    } else if (e.deltaY < -WHEEL_THRESHOLD && currentIndex > 0) {
+      goToSection(currentIndex - 1);
     }
   }, { passive: false });
 
-  // 터치 시작 위치 기록
+  // ===== 터치 스와이프(모바일) =====
   wrapper.addEventListener('touchstart', (e) => {
     if (e.touches.length !== 1) return;
     touchStartY = e.touches[0].clientY;
   }, { passive: true });
 
-  // 터치 끝났을 때 방향/거리 보고 섹션 이동
-  wrapper.addEventListener('touchend', (e) => {
-    if (isSnapping) return;
+  // 이동 중에는 브라우저가 직접 스크롤 못하게 막음 (탄성 방지)
+  wrapper.addEventListener('touchmove', (e) => {
+    if (e.touches.length !== 1) return;
+    e.preventDefault();
+  }, { passive: false });
 
-    const touchEndY = (e.changedTouches && e.changedTouches[0].clientY) || touchStartY;
+  wrapper.addEventListener('touchend', (e) => {
+    if (isAnimating) return;
+    if (!e.changedTouches || e.changedTouches.length === 0) return;
+
+    const touchEndY = e.changedTouches[0].clientY;
     const diff = touchStartY - touchEndY; // 양수: 위로 쓸어올림(다음 섹션)
 
-    updateIndexByScroll();
-
-    // 손가락 살짝만 움직였으면, 그냥 가까운 섹션으로 재정렬
-    if (Math.abs(diff) < TOUCH_THRESHOLD) {
-      snapTo(currentIndex);
+    // 살짝 건드린 정도면, 그냥 현재 섹션으로 다시 정렬
+    if (Math.abs(diff) < SWIPE_THRESHOLD) {
+      goToSection(currentIndex);
       return;
     }
 
     if (diff > 0 && currentIndex < sections.length - 1) {
-      // 위로 쓸어올림 → 아래 섹션
-      snapTo(currentIndex + 1);
+      // 위로 스와이프 → 아래(다음) 섹션
+      goToSection(currentIndex + 1);
     } else if (diff < 0 && currentIndex > 0) {
-      // 아래로 쓸어내림 → 위 섹션
-      snapTo(currentIndex - 1);
+      // 아래로 스와이프 → 위(이전) 섹션
+      goToSection(currentIndex - 1);
     }
   }, { passive: true });
 
-  // data-next-section 버튼(있으면)도 한 칸씩 이동하게
-  document.querySelectorAll('[data-next-section]').forEach((btn) => {
+  // ===== [data-next-section] 버튼으로 이동 =====
+  triggers.forEach((btn) => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
-      if (isSnapping) return;
-
-      updateIndexByScroll();
+      if (isAnimating) return;
 
       const target = btn.dataset.nextSection;
+
       if (!target || target === 'next') {
-        if (currentIndex < sections.length - 1) {
-          snapTo(currentIndex + 1);
-        }
+        goToSection(currentIndex + 1);
       } else {
         const idx = sections.findIndex(sec => sec.id === target);
-        if (idx !== -1) snapTo(idx);
+        if (idx !== -1) {
+          goToSection(idx);
+        }
       }
     });
   });
 
-  // 처음 로딩 시 0번 섹션에 딱 붙이기
-  snapTo(0);
+  // ===== 키보드로도 슬라이드 넘기기 (선택) =====
+  window.addEventListener('keydown', (e) => {
+    if (isAnimating) return;
+
+    if (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ') {
+      e.preventDefault();
+      goToSection(currentIndex + 1);
+    }
+    if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+      e.preventDefault();
+      goToSection(currentIndex - 1);
+    }
+  });
+
+  // 처음 로딩하면 0번 섹션으로
+  goToSection(0);
 });
