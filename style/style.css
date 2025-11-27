@@ -18,7 +18,6 @@ body, html {
     line-height: 1.4; 
     background-color: #fff;
     overflow: hidden; 
-    scroll-behavior: smooth;
     -webkit-text-size-adjust: 100%;
 }
 
@@ -28,14 +27,11 @@ body, html {
 #fullpage-wrapper {
   position: relative;
   width: 100%;
-  height: 100svh;          /* 모바일 주소창 변동 덜 타게 */
-  overflow-y: auto;        /* scroll → auto */
-
-  scroll-behavior: auto;
-
-  /* 스크롤바 숨기기 */
-  scrollbar-width: none;   /* Firefox */
-  -ms-overflow-style: none;/* IE/old Edge */
+  height: 100vh;
+  overflow-y: scroll;
+  scroll-behavior: auto; 
+  scrollbar-width: none; 
+  -ms-overflow-style: none;  
 }
 
 #fullpage-wrapper::-webkit-scrollbar {
@@ -46,18 +42,16 @@ body, html {
    각 섹션 공통
    =========================== */
 .section {
-  width: 100%;
-  height: 100svh;          /* 100vh → 100svh (모바일 최적화) */
-  position: relative;
-  box-sizing: border-box;
-
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-
-  padding: 0;
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 0; 
 }
 
 /* =========================== */
