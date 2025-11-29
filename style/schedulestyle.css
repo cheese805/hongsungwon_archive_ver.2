@@ -1,3 +1,7 @@
+* {
+  -webkit-tap-highlight-color: transparent !important;
+}
+
 /* ==============================
    FONT (folder / info와 동일)
    ============================== */
