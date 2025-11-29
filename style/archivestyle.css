@@ -1,5 +1,9 @@
+* {
+  -webkit-tap-highlight-color: transparent !important;
+}
+
 /* ==============================
-   FONT (folder / info와 동일)
+   FONT
    ============================== */
 @font-face {
   font-family:'Pretendard';
