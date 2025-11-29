@@ -352,14 +352,14 @@ body {
   max-width: 400px;
   max-height: 90vh;
   overflow-y: auto;
+
+  /* 상·좌 패딩 넉넉하게 */
   padding: 40px 30px 40px 28px;  /* top right bottom left */
 
   text-align: left;
   scrollbar-width: none;
   -ms-overflow-style: none;
-  /* */
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
+
   margin-top: 50px; 
 }
 .filmography-container::-webkit-scrollbar {
