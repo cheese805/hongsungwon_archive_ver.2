@@ -1,5 +1,16 @@
 [
     {
+        "id": "251129_instagram_story",
+        "date": "2025-11-29",
+        "source": {
+        "owner": "글림아티스트",
+        "type": "instagram_story",
+        "label": "글림아티스트 인스타그램 스토리"
+        },
+        "tags": ["성원해주신_순간"],
+        "images": ["galleryimg/251129story.jpg"]
+    },
+    {
         "id": "251129_official_stage",
         "date": "2025-11-29",
         "source": {
