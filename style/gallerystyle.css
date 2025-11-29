@@ -1,5 +1,9 @@
+
+* {
+  -webkit-tap-highlight-color: transparent !important;
+}
 /* ==============================
-   FONT (info/folder/schedule와 동일 계열)
+   FONT 
    ============================== */
 @font-face {
   font-family:'Pretendard';
