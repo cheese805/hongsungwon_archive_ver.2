@@ -1,5 +1,46 @@
 [
     {
+        "id": "251130_official_artist",
+        "date": "2025-11-30",
+        "source": {
+        "owner": "글림아티스트",
+        "type": "official_artist",
+        "label": "뮤지컬 데카브리 프로필 비하인드"
+        },
+        "tags": ["캐빈"],
+        "images": ["/galleryimg/251130post1.jpg",
+            "/galleryimg/251130post2.jpg",
+            "/galleryimg/251130post3.jpg",
+            "/galleryimg/251130post4.jpg",
+            "/galleryimg/251130post5.jpg",
+            "/galleryimg/251130post6.jpg",
+            "/galleryimg/251130post7.jpg",
+            "/galleryimg/251130post8.jpg",
+            "/galleryimg/251130post9.jpg",
+            "/galleryimg/251130post10.jpg",
+            "/galleryimg/251130post11.jpg",
+            "/galleryimg/251130post12.jpg",
+            "/galleryimg/251130post13.jpg",
+            "/galleryimg/251130post14.jpg",
+            "/galleryimg/251130post15.jpg",
+            "/galleryimg/251130post16.jpg",
+            "/galleryimg/251130post17.jpg",
+            "/galleryimg/251130post18.jpg",
+            "/galleryimg/251130post19.jpg"
+        ]
+    },
+    {
+        "id": "251123_official_stage",
+        "date": "2025-11-20",
+        "source": {
+        "owner": "쇼노트",
+        "type": "official_stage",
+        "label": "뮤지컬 데카브리 막공사진"
+        },
+        "tags": ["데카브리"],
+        "images": ["/galleryimg/251130post20.jpg"]
+    },
+    {
         "id": "251129_instagram_story",
         "date": "2025-11-29",
         "source": {
