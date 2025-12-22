@@ -474,16 +474,6 @@ body, html {
   letter-spacing: 3px;
 }
 
-.event-box {
-  width: 80vw;
-  max-width: 280px;
-  height: 380px;
-  background-color: #e8e8e8;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 60px; /* 네모 아래 문구와 간격 */
-}
 
 .copyright-text {
   font-size: 0.65rem;
@@ -493,12 +483,21 @@ body, html {
   margin: 0;
 }
 
-.event-box p { 
-    font-size: 0.9rem; 
-    color: #000000; 
-    font-weight: 300; 
-    letter-spacing: 0.5px;
+.event-box {
+  margin: 40px auto 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
+
+.event-box img {
+  max-width: 280px;
+  width: 100%;
+  height: auto;
+  display: block;
+  cursor: pointer;
+}
+
 
 /*애니메이션*/
 /* 진입 슬라이드: 왼쪽 → 중앙 */
